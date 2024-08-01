@@ -1,0 +1,78 @@
+---
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: rhel9-test
+spec:
+  selector:
+    matchLabels:
+      appname: kubevirt
+  running: true
+  template:
+    metadata:
+      annotations:
+        vm.kubevirt.io/flavor: small
+        vm.kubevirt.io/os: rhel9
+        vm.kubevirt.io/workload: server
+      creationTimestamp: null
+      labels:
+        kubevirt.io/domain:  rhel9
+        kubevirt.io/size: small
+    spec:
+      architecture: amd64
+      domain:
+        cpu:
+          cores: 2
+          sockets: 1
+          threads: 1
+        devices:
+          disks:
+            - bootOrder: 2
+              disk:
+                bus: virtio
+              name: rootdisk
+            - bootOrder: 3
+              disk:
+                bus: virtio
+              name: cloudinitdisk
+            - bootOrder: 1
+              cdrom:
+                bus: sata
+              name: installation-cdrom
+          interfaces:
+          - masquerade: {}
+            model: virtio
+            name: default
+          networkInterfaceMultiqueue: true
+          rng: {}
+        features:
+          acpi: {}
+          smm:
+            enabled: true
+        firmware:
+          bootloader:
+            efi: {}
+        machine:
+          type: pc-q35-rhel9.2.0
+        memory:
+          guest: 4Gi
+        resources: {}
+      networks:
+        - name: default
+          pod: {}
+      terminationGracePeriodSeconds: 180
+      volumes:
+        - name: rootdisk
+          persistentVolumeClaim:
+            claimName: vm-pvc
+        - containerDisk:
+            image: 'ocp-registry-quay-quay.apps.openshift01.sandbox322.opentlc.com/container-native-virtualization/rhel-guest-image:9.2-817'
+          name: installation-cdrom
+        - cloudInitNoCloud:
+            userData: |
+              #cloud-config
+              user: cloud-user
+              password: redhat
+              chpasswd:
+                expire: false
+          name: cloudinitdisk

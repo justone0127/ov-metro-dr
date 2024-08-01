@@ -1,0 +1,72 @@
+---
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: rhel9-test
+spec:
+  running: true
+  template:
+    metadata:
+      annotations:
+        vm.kubevirt.io/flavor: small
+        vm.kubevirt.io/os: rhel9
+        vm.kubevirt.io/workload: server
+      creationTimestamp: null
+      labels:
+        kubevirt.io/domain:  rhel9
+        kubevirt.io/size: small
+    spec:
+      architecture: amd64
+      domain:
+        cpu:
+          cores: 2
+          sockets: 1
+          threads: 1
+        devices:
+          disks:
+            - name: rootdisk
+              disk:
+                bus: virtio
+            - name: cloudinit
+              disk: {}
+            - name: datadisk
+              disk:
+                bus: virtio
+              serial: data
+          interfaces:
+          - masquerade: {}
+            model: virtio
+            name: default
+          networkInterfaceMultiqueue: true
+          rng: {}
+        features:
+          acpi: {}
+          smm:
+            enabled: true
+        firmware:
+          bootloader:
+            efi: {}
+        machine:
+          type: pc-q35-rhel9.2.0
+        memory:
+          guest: 4Gi
+        resources: {}
+      networks:
+        - name: default
+          pod: {}
+      terminationGracePeriodSeconds: 180
+      volumes:
+        - name: rootdisk
+          persistentVolumeClaim:
+            claimName: vm-pvc
+        - name: datadisk
+          persistentVolumeClaim:
+            claimName: data-pvc
+        - cloudInitNoCloud:
+            userData: |
+              #cloud-config
+              user: cloud-user
+              password: redhat
+              chpasswd:
+                expire: false
+          name: cloudinitdisk

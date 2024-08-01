@@ -1,0 +1,9 @@
+---
+apiVersion: cdi.kubevirt.io/v1beta1
+kind: VolumeImportSource
+metadata:
+  name: vm-source
+spec:
+  source:
+    registry:
+      url: 'docker://ocp-registry-quay-quay.apps.openshift01.sandbox322.opentlc.com/container-native-virtualization/rhel-guest-image:9.2-817'
